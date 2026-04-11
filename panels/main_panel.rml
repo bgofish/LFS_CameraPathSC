@@ -7,7 +7,7 @@
     <div class="panel-header">
       <span class="panel-kicker">Camera Tools</span>
       <span class="panel-title">Camera Path SC</span>
-      <span class="panel-note">Standalone JSON camera path generator for SuperSplat / Lichtfeld.</span>
+      <span class="panel-note">Standalone JSON camera path generator for Lichtfeld Studio.</span>
     </div>
     <div id="im-root"></div>
   </div>
