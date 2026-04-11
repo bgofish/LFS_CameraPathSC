@@ -1,5 +1,5 @@
 [project]
-name = "Camera Json"
+name = "CamPath_Json"
 version = "0.1.0"
 description = "Camera Json Path Creator - Circles & Spirals"
 
