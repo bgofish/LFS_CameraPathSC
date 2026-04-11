@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 # Path to the standalone GUI script inside the plugin Scripts folder
-_SCRIPTS_DIR = Path(os.environ.get("USERPROFILE", "~")).expanduser()     / ".lichtfeld" / "plugins" / "CameraPathSC" / "Scripts"
+_SCRIPTS_DIR = Path(os.environ.get("USERPROFILE", "~")).expanduser()     / ".lichtfeld" / "plugins" / "CamPath_Json" / "Scripts"
 _GUI_SCRIPT = _SCRIPTS_DIR / "standalone_json_gui.py"
 
 
