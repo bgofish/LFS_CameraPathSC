@@ -305,7 +305,7 @@ class StandaloneCameraGenerator:
 
         scripts_dir = (
             Path(os.environ.get("USERPROFILE", "~")).expanduser()
-            / ".lichtfeld" / "plugins" / "CameraPathSC" / "Scripts"
+            / ".lichtfeld" / "plugins" / "CamPath_Json" / "Scripts"
         )
         log_path = scripts_dir / "File.log"
 
