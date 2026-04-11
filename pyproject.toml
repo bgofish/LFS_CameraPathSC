@@ -1,0 +1,10 @@
+[project]
+name = "CameraPathSC"
+version = "0.1.0"
+description = "Camera Path Creator - Circles & Spirals"
+
+[tool.lichtfeld]
+hot_reload = true
+plugin_api = ">=1,<2"
+lichtfeld_version = ">=0.5.1"
+required_features = []
