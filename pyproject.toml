@@ -1,7 +1,7 @@
 [project]
-name = "CameraPathSC"
+name = "Camera Json"
 version = "0.1.0"
-description = "Camera Path Creator - Circles & Spirals"
+description = "Camera Json Path Creator - Circles & Spirals"
 
 [tool.lichtfeld]
 hot_reload = true
