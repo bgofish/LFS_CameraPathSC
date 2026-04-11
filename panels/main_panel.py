@@ -54,7 +54,7 @@ class MainPanel(lf.ui.Panel):
 
     def draw(self, ui):
         ui.heading("Camera Path SC")
-        ui.text_disabled("Generate SuperSplat-compatible camera animation JSON files.")
+        ui.text_disabled("Generate Lichtfeld Studio-compatible camera animation JSON files.")
         ui.separator()
 
         if ui.button("Open Camera Generator"):
