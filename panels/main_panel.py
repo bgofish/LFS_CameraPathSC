@@ -7,9 +7,10 @@ from pathlib import Path
 
 
 # Paths
-_SCRIPTS_DIR = Path(os.environ.get("USERPROFILE", "~")).expanduser()     / ".lichtfeld" / "plugins" / "CamPath_Json" / "Scripts"
+_SCRIPTS_DIR = Path(os.environ.get("USERPROFILE", "~")).expanduser()     / ".lichtfeld" / "plugins" / "CameraPathSC" / "Scripts"
 _GUI_SCRIPT  = _SCRIPTS_DIR / "standalone_json_gui.py"
 _FILE_LOG    = _SCRIPTS_DIR / "File.log"
+_BACKUP_JSON = _SCRIPTS_DIR / "backup.json"
 
 
 def _find_python():
@@ -41,8 +42,6 @@ def _read_log_path() -> str:
     """Read the last-saved JSON path from File.log. Returns empty string on any failure."""
     try:
         text = _FILE_LOG.read_text(encoding="utf-8").strip()
-        # Log line format: "YYYY-MM-DD HH:MM:SS  <path>"
-        # The path is everything after the first two space-separated tokens.
         parts = text.split(None, 2)
         return parts[2].strip() if len(parts) >= 3 else text
     except Exception:
@@ -63,10 +62,6 @@ class MainPanel(lf.ui.Panel):
         self._status     = ""
 
     def draw(self, ui):
-        ui.heading("Camera Path SC")
-        ui.text_disabled("Generate SuperSplat-compatible camera animation JSON files.")
-        ui.separator()
-
         # --- Launch GUI button ---
         if ui.button("Open Camera Generator"):
             if self._python_exe is None:
@@ -82,7 +77,7 @@ class MainPanel(lf.ui.Panel):
                         creationflags=subprocess.CREATE_NO_WINDOW
                             if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
                     )
-                    self._status = f"GUI launched."
+                    self._status = "GUI launched."
                     lf.log.info(f"CameraPathSC: Launched GUI via {self._python_exe}")
                 except Exception as e:
                     self._status = f"ERROR: {e}"
@@ -107,6 +102,23 @@ class MainPanel(lf.ui.Panel):
                 except Exception as e:
                     self._status = f"Load failed: {e}"
                     lf.log.error(f"CameraPathSC: Load into sequencer failed — {e}")
+
+        ui.same_line()
+
+        # --- Backup sequencer button ---
+        if ui.button("Backup Sequencer Path"):
+            try:
+                _SCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
+                result = lf.ui.save_camera_path(str(_BACKUP_JSON))
+                if result:
+                    self._status = f"Backup saved: {_BACKUP_JSON}"
+                    lf.log.info(f"CameraPathSC: Sequencer path backed up to {_BACKUP_JSON}")
+                else:
+                    self._status = "Backup failed — is there a camera path in the sequencer?"
+                    lf.log.error("CameraPathSC: save_camera_path returned False")
+            except Exception as e:
+                self._status = f"Backup failed: {e}"
+                lf.log.error(f"CameraPathSC: Backup failed — {e}")
 
         ui.separator()
         if self._status:
