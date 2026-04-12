@@ -1,4 +1,4 @@
-"""Main panel for CameraPathSC plugin."""
+"""Main panel for CameraPathSC  plugin."""
 
 import lichtfeld as lf
 import os
