@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 # Paths
-_SCRIPTS_DIR = Path(os.environ.get("USERPROFILE", "~")).expanduser()     / ".lichtfeld" / "plugins" / "CameraPathSC" / "Scripts"
+_SCRIPTS_DIR = Path(os.environ.get("USERPROFILE", "~")).expanduser()     / ".lichtfeld" / "plugins" / "CamPath_Json" / "Scripts"
 _GUI_SCRIPT  = _SCRIPTS_DIR / "standalone_json_gui.py"
 _FILE_LOG    = _SCRIPTS_DIR / "File.log"
 _BACKUP_JSON = _SCRIPTS_DIR / "backup.json"
