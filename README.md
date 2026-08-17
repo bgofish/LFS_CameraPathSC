@@ -1,7 +1,10 @@
 CameraPath Maker to create custom spiral/helix/circular paths - Json file is saved to your computer. Use [Load into Sequencer] to load (& OVERWRITE) your current sequence (if any) - so Save or Backup first !!!  
 
-<img width="1547" height="1422" alt="image" src="https://github.com/user-attachments/assets/10af3bac-4861-4de0-9de7-0f98c69ebf77" />
+EDIT 0.2.1
+* Added Pickpoints and Slider controls - If you manually edit the numerical value use UPDATE
+* Added DEFAULTS.JSON file
+
+<img width="1648" height="919" alt="image" src="https://github.com/user-attachments/assets/7db7d939-eb0d-4780-bf7a-4f22c9b37a84" />
 
 TOWER HELIX - CameraTarget height in sync ( or  constant offset)
-<img width="1217" height="865" alt="image" src="https://github.com/user-attachments/assets/f9b8b3d1-1c43-46bd-af93-ea6dfdf66e1e" />
-
+<img width="1325" height="895" alt="image" src="https://github.com/user-attachments/assets/46861e43-8466-44e8-b949-ee431986999d" />
