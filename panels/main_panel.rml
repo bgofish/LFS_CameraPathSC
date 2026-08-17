@@ -5,8 +5,9 @@
 <body id="body" class="plugin-panel CameraPathSC-panel" data-model="campath_json">
   <div class="panel-shell">
     <div class="panel-header">
-      <span class="panel-title">Camera Tools: Circular & Spiral Paths</span>
-      <span class="panel-kicker">JSON camera path generator for LichtFeld Studio.</span>
+      <span class="panel-kicker">Camera Tools</span>
+      <span class="panel-title">Camera Path SC</span>
+      <span class="panel-note">Native JSON camera path generator for LichtFeld Studio.</span>
     </div>
 
     <!-- ================= Animation ================= -->
@@ -48,30 +49,69 @@
         <div data-if="!is_spiral">
           <div class="field-row">
             <span class="field-label">Radius (m)</span>
-            <input type="text" class="field-input" data-value="radius"/>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="0.1" max="200" step="0.1" data-value="radius"/>
+              <input type="text" class="field-input slider-text" data-value="radius_text"/>
+            </div>
+          </div>
+          <div data-if="not_picking_radius" class="button-row">
+            <button class="action-button pick" data-event-click="pick_radius" title="Click a point on the model; radius is computed as the horizontal distance from the Orbit Centre.">Pick Point (from Orbit Centre)</button>
+            <button class="action-button update" data-event-click="update_radius" title="Move the radius marker to match the current Radius value (extrapolated along the last picked direction from Orbit Centre).">Update</button>
+          </div>
+          <div data-if="picking_radius" class="button-row">
+            <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
           </div>
         </div>
 
         <div data-if="is_spiral">
           <div class="field-row">
             <span class="field-label">Loops</span>
-            <input type="text" class="field-input" data-value="loops"/>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="0.1" max="20" step="0.1" data-value="loops"/>
+              <input type="text" class="field-input slider-text" data-value="loops_text"/>
+            </div>
           </div>
           <div class="field-row">
             <span class="field-label">Start Radius (m)</span>
-            <input type="text" class="field-input" data-value="start_radius"/>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="0" max="200" step="0.1" data-value="start_radius"/>
+              <input type="text" class="field-input slider-text" data-value="start_radius_text"/>
+            </div>
+          </div>
+          <div data-if="not_picking_start_radius" class="button-row">
+            <button class="action-button pick" data-event-click="pick_start_radius" title="Click a point on the model; start radius is computed as the horizontal distance from the Orbit Centre.">Pick Point (from Orbit Centre)</button>
+            <button class="action-button update" data-event-click="update_start_radius" title="Move the start-radius marker to match the current Start Radius value.">Update</button>
+          </div>
+          <div data-if="picking_start_radius" class="button-row">
+            <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
           </div>
           <div class="field-row">
             <span class="field-label">End Radius (m)</span>
-            <input type="text" class="field-input" data-value="end_radius"/>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="0" max="200" step="0.1" data-value="end_radius"/>
+              <input type="text" class="field-input slider-text" data-value="end_radius_text"/>
+            </div>
+          </div>
+          <div data-if="not_picking_end_radius" class="button-row">
+            <button class="action-button pick" data-event-click="pick_end_radius" title="Click a point on the model; end radius is computed as the horizontal distance from the Orbit Centre.">Pick Point (from Orbit Centre)</button>
+            <button class="action-button update" data-event-click="update_end_radius" title="Move the end-radius marker to match the current End Radius value.">Update</button>
+          </div>
+          <div data-if="picking_end_radius" class="button-row">
+            <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
           </div>
           <div class="field-row">
             <span class="field-label">Start Height (m)</span>
-            <input type="text" class="field-input" data-value="start_height"/>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="-100" max="100" step="0.1" data-value="start_height"/>
+              <input type="text" class="field-input slider-text" data-value="start_height_text"/>
+            </div>
           </div>
           <div class="field-row">
             <span class="field-label">End Height (m)</span>
-            <input type="text" class="field-input" data-value="end_height"/>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="-100" max="100" step="0.1" data-value="end_height"/>
+              <input type="text" class="field-input slider-text" data-value="end_height_text"/>
+            </div>
           </div>
 
           <div class="field-row">
@@ -83,7 +123,10 @@
 
           <div data-if="follow_y" class="field-row">
             <span class="field-label">Height Offset (m)</span>
-            <input type="text" class="field-input" data-value="y_offset"/>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="-100" max="100" step="0.1" data-value="y_offset"/>
+              <input type="text" class="field-input slider-text" data-value="y_offset_text"/>
+            </div>
           </div>
           <p data-if="!follow_y" class="section-hint">(enable "Target follows camera height" to set an offset)</p>
         </div>
@@ -98,9 +141,34 @@
         <span class="section-title">Orbit Centre</span>
       </div>
       <div class="section-body" data-if="sec_centre">
-        <div class="field-row"><span class="field-label">X</span><input type="text" class="field-input" data-value="cx"/></div>
-        <div class="field-row"><span class="field-label">Y</span><input type="text" class="field-input" data-value="cy"/></div>
-        <div class="field-row"><span class="field-label">Z</span><input type="text" class="field-input" data-value="cz"/></div>
+        <div class="field-row">
+          <span class="field-label">X</span>
+          <div class="slider-combo">
+            <input type="range" class="field-slider" min="-500" max="500" step="0.1" data-value="cx"/>
+            <input type="text" class="field-input slider-text" data-value="cx_text"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Y</span>
+          <div class="slider-combo">
+            <input type="range" class="field-slider" min="-500" max="500" step="0.1" data-value="cy"/>
+            <input type="text" class="field-input slider-text" data-value="cy_text"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Z</span>
+          <div class="slider-combo">
+            <input type="range" class="field-slider" min="-500" max="500" step="0.1" data-value="cz"/>
+            <input type="text" class="field-input slider-text" data-value="cz_text"/>
+          </div>
+        </div>
+        <div data-if="not_picking_centre" class="button-row">
+          <button class="action-button pick" data-event-click="pick_centre" title="Click on the model to set the orbit centre.">Pick Point</button>
+          <button class="action-button update" data-event-click="update_centre" title="Move the marker in the viewport to match the current X/Y/Z values.">Update</button>
+        </div>
+        <div data-if="picking_centre" class="button-row">
+          <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
+        </div>
       </div>
     </div>
 
@@ -118,9 +186,34 @@
           </div>
         </div>
         <div data-if="!auto_target">
-          <div class="field-row"><span class="field-label">X</span><input type="text" class="field-input" data-value="tx"/></div>
-          <div class="field-row"><span class="field-label">Y</span><input type="text" class="field-input" data-value="ty"/></div>
-          <div class="field-row"><span class="field-label">Z</span><input type="text" class="field-input" data-value="tz"/></div>
+          <div class="field-row">
+            <span class="field-label">X</span>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="-500" max="500" step="0.1" data-value="tx"/>
+              <input type="text" class="field-input slider-text" data-value="tx_text"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Y</span>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="-500" max="500" step="0.1" data-value="ty"/>
+              <input type="text" class="field-input slider-text" data-value="ty_text"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Z</span>
+            <div class="slider-combo">
+              <input type="range" class="field-slider" min="-500" max="500" step="0.1" data-value="tz"/>
+              <input type="text" class="field-input slider-text" data-value="tz_text"/>
+            </div>
+          </div>
+          <div data-if="not_picking_target" class="button-row">
+            <button class="action-button pick" data-event-click="pick_target" title="Click on the model to set the look target. Turns off Auto-target.">Pick Point</button>
+            <button class="action-button update" data-event-click="update_target" title="Move the marker in the viewport to match the current X/Y/Z values.">Update</button>
+          </div>
+          <div data-if="picking_target" class="button-row">
+            <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
+          </div>
         </div>
       </div>
     </div>
@@ -132,12 +225,36 @@
         <span class="section-title">Camera &amp; Timing</span>
       </div>
       <div class="section-body" data-if="sec_camera">
-        <div class="field-row"><span class="field-label">Frames</span><input type="text" class="field-input" data-value="frames"/></div>
-        <div class="field-row"><span class="field-label">FPS</span><input type="text" class="field-input" data-value="fps"/></div>
+        <div class="field-row">
+          <span class="field-label">Frames</span>
+          <div class="slider-combo">
+            <input type="range" class="field-slider" min="1" max="3000" step="1" data-value="frames"/>
+            <input type="text" class="field-input slider-text" data-value="frames_text"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">FPS</span>
+          <div class="slider-combo">
+            <input type="range" class="field-slider" min="1" max="240" step="1" data-value="fps"/>
+            <input type="text" class="field-input slider-text" data-value="fps_text"/>
+          </div>
+        </div>
         <p class="derived-text">{{ duration_text }}</p>
 
-        <div class="field-row"><span class="field-label">Focal Length (mm)</span><input type="text" class="field-input" data-value="focal_length"/></div>
-        <div class="field-row"><span class="field-label">Sensor Width (mm)</span><input type="text" class="field-input" data-value="sensor_size"/></div>
+        <div class="field-row">
+          <span class="field-label">Focal Length (mm)</span>
+          <div class="slider-combo">
+            <input type="range" class="field-slider" min="1" max="300" step="0.5" data-value="focal_length"/>
+            <input type="text" class="field-input slider-text" data-value="focal_length_text"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Sensor Width (mm)</span>
+          <div class="slider-combo">
+            <input type="range" class="field-slider" min="1" max="100" step="0.5" data-value="sensor_size"/>
+            <input type="text" class="field-input slider-text" data-value="sensor_size_text"/>
+          </div>
+        </div>
         <p class="derived-text">{{ fov_text }}</p>
       </div>
     </div>
@@ -149,8 +266,21 @@
         <span class="section-title">Export Options</span>
       </div>
       <div class="section-body" data-if="sec_export">
-        <div class="field-row"><span class="field-label">Keyframe every N frames</span><input type="text" class="field-input" data-value="keyframe_step"/></div>
-        <div class="field-row"><span class="field-label">Decimal Precision</span><input type="text" class="field-input" data-value="precision"/></div>
+        <div class="field-row">
+          <span class="field-label">Keyframe N Frames</span>
+          <div class="slider-combo">
+            <input type="range" class="field-slider" min="1" max="60" step="1" data-value="keyframe_step"/>
+            <input type="text" class="field-input slider-text" data-value="keyframe_step_text"/>
+          </div>
+        </div>
+        <p class="warning-text" data-if="keyframe_warning_text != ''">{{ keyframe_warning_text }}</p>
+        <div class="field-row">
+          <span class="field-label">Decimal Precision</span>
+          <div class="slider-combo">
+            <input type="range" class="field-slider" min="0" max="10" step="1" data-value="precision"/>
+            <input type="text" class="field-input slider-text" data-value="precision_text"/>
+          </div>
+        </div>
         <div class="field-row">
           <span class="field-label">Output File (.json)</span>
           <input type="text" class="field-input wide" data-value="output_path"/>
