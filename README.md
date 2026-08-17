@@ -3,6 +3,7 @@ CameraPath Maker to create custom spiral/helix/circular paths - Json file is sav
 EDIT 0.2.1
 * Added Pickpoints and Slider controls - If you manually edit the numerical value use UPDATE
 * Added DEFAULTS.JSON file
+* Added Warning for exceeding 400 keyframes - As I found it becomes unstable & can crash LFS
 
 <img width="1648" height="919" alt="image" src="https://github.com/user-attachments/assets/7db7d939-eb0d-4780-bf7a-4f22c9b37a84" />
 
