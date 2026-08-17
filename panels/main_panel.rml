@@ -2,14 +2,181 @@
 <head>
   <link type="text/rcss" href="main_panel.rcss"/>
 </head>
-<body id="body" class="plugin-panel CameraPathSC-panel">
+<body id="body" class="plugin-panel CameraPathSC-panel" data-model="campath_json">
   <div class="panel-shell">
     <div class="panel-header">
-      <span class="panel-kicker">Camera Tools</span>
-      <span class="panel-title">Camera Path SC</span>
-      <span class="panel-note">Standalone JSON camera path generator for Lichtfeld Studio.</span>
+      <span class="panel-title">Camera Tools: Circular & Spiral Paths</span>
+      <span class="panel-kicker">JSON camera path generator for LichtFeld Studio.</span>
     </div>
-    <div id="im-root"></div>
+
+    <!-- ================= Animation ================= -->
+    <div class="section">
+      <div class="section-header" data-event-click="sec_anim = !sec_anim">
+        <span class="section-arrow" data-class-open="sec_anim">&#9656;</span>
+        <span class="section-title">Animation</span>
+      </div>
+      <div class="section-body" data-if="sec_anim">
+
+        <div class="field-row">
+          <span class="field-label">Type</span>
+          <div class="option-group">
+            <div class="option-item" data-event-click="anim_type = 'circular'">
+              <span class="option-box radio" data-class-checked="anim_type == 'circular'"></span>
+              <span>Circular</span>
+            </div>
+            <div class="option-item" data-event-click="anim_type = 'spiral'">
+              <span class="option-box radio" data-class-checked="anim_type == 'spiral'"></span>
+              <span>Spiral</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">Direction</span>
+          <div class="option-group">
+            <div class="option-item" data-event-click="direction = 'clockwise'">
+              <span class="option-box radio" data-class-checked="direction == 'clockwise'"></span>
+              <span>Clockwise</span>
+            </div>
+            <div class="option-item" data-event-click="direction = 'ccw'">
+              <span class="option-box radio" data-class-checked="direction == 'ccw'"></span>
+              <span>Counter-clockwise</span>
+            </div>
+          </div>
+        </div>
+
+        <div data-if="!is_spiral">
+          <div class="field-row">
+            <span class="field-label">Radius (m)</span>
+            <input type="text" class="field-input" data-value="radius"/>
+          </div>
+        </div>
+
+        <div data-if="is_spiral">
+          <div class="field-row">
+            <span class="field-label">Loops</span>
+            <input type="text" class="field-input" data-value="loops"/>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Start Radius (m)</span>
+            <input type="text" class="field-input" data-value="start_radius"/>
+          </div>
+          <div class="field-row">
+            <span class="field-label">End Radius (m)</span>
+            <input type="text" class="field-input" data-value="end_radius"/>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Start Height (m)</span>
+            <input type="text" class="field-input" data-value="start_height"/>
+          </div>
+          <div class="field-row">
+            <span class="field-label">End Height (m)</span>
+            <input type="text" class="field-input" data-value="end_height"/>
+          </div>
+
+          <div class="field-row">
+            <div class="option-item" data-event-click="follow_y = !follow_y">
+              <span class="option-box checkbox" data-class-checked="follow_y"></span>
+              <span>Target follows camera height</span>
+            </div>
+          </div>
+
+          <div data-if="follow_y" class="field-row">
+            <span class="field-label">Height Offset (m)</span>
+            <input type="text" class="field-input" data-value="y_offset"/>
+          </div>
+          <p data-if="!follow_y" class="section-hint">(enable "Target follows camera height" to set an offset)</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= Orbit Centre ================= -->
+    <div class="section">
+      <div class="section-header" data-event-click="sec_centre = !sec_centre">
+        <span class="section-arrow" data-class-open="sec_centre">&#9656;</span>
+        <span class="section-title">Orbit Centre</span>
+      </div>
+      <div class="section-body" data-if="sec_centre">
+        <div class="field-row"><span class="field-label">X</span><input type="text" class="field-input" data-value="cx"/></div>
+        <div class="field-row"><span class="field-label">Y</span><input type="text" class="field-input" data-value="cy"/></div>
+        <div class="field-row"><span class="field-label">Z</span><input type="text" class="field-input" data-value="cz"/></div>
+      </div>
+    </div>
+
+    <!-- ================= Look Target ================= -->
+    <div class="section">
+      <div class="section-header" data-event-click="sec_target = !sec_target">
+        <span class="section-arrow" data-class-open="sec_target">&#9656;</span>
+        <span class="section-title">Look Target</span>
+      </div>
+      <div class="section-body" data-if="sec_target">
+        <div class="field-row">
+          <div class="option-item" data-event-click="auto_target = !auto_target">
+            <span class="option-box checkbox" data-class-checked="auto_target"></span>
+            <span>Auto-target (use orbit centre)</span>
+          </div>
+        </div>
+        <div data-if="!auto_target">
+          <div class="field-row"><span class="field-label">X</span><input type="text" class="field-input" data-value="tx"/></div>
+          <div class="field-row"><span class="field-label">Y</span><input type="text" class="field-input" data-value="ty"/></div>
+          <div class="field-row"><span class="field-label">Z</span><input type="text" class="field-input" data-value="tz"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Camera & Timing ================= -->
+    <div class="section">
+      <div class="section-header" data-event-click="sec_camera = !sec_camera">
+        <span class="section-arrow" data-class-open="sec_camera">&#9656;</span>
+        <span class="section-title">Camera &amp; Timing</span>
+      </div>
+      <div class="section-body" data-if="sec_camera">
+        <div class="field-row"><span class="field-label">Frames</span><input type="text" class="field-input" data-value="frames"/></div>
+        <div class="field-row"><span class="field-label">FPS</span><input type="text" class="field-input" data-value="fps"/></div>
+        <p class="derived-text">{{ duration_text }}</p>
+
+        <div class="field-row"><span class="field-label">Focal Length (mm)</span><input type="text" class="field-input" data-value="focal_length"/></div>
+        <div class="field-row"><span class="field-label">Sensor Width (mm)</span><input type="text" class="field-input" data-value="sensor_size"/></div>
+        <p class="derived-text">{{ fov_text }}</p>
+      </div>
+    </div>
+
+    <!-- ================= Export Options ================= -->
+    <div class="section">
+      <div class="section-header" data-event-click="sec_export = !sec_export">
+        <span class="section-arrow" data-class-open="sec_export">&#9656;</span>
+        <span class="section-title">Export Options</span>
+      </div>
+      <div class="section-body" data-if="sec_export">
+        <div class="field-row"><span class="field-label">Keyframe every N frames</span><input type="text" class="field-input" data-value="keyframe_step"/></div>
+        <div class="field-row"><span class="field-label">Decimal Precision</span><input type="text" class="field-input" data-value="precision"/></div>
+        <div class="field-row">
+          <span class="field-label">Output File (.json)</span>
+          <input type="text" class="field-input wide" data-value="output_path"/>
+        </div>
+        <button id="btn-generate" class="action-button primary">Generate JSON</button>
+      </div>
+    </div>
+
+    <!-- ================= Sequencer ================= -->
+    <div class="section">
+      <div class="section-header" data-event-click="sec_sequencer = !sec_sequencer">
+        <span class="section-arrow" data-class-open="sec_sequencer">&#9656;</span>
+        <span class="section-title">Sequencer</span>
+      </div>
+      <div class="section-body" data-if="sec_sequencer">
+        <p class="section-hint">Loading overwrites the sequencer's current path — back it up first if needed.</p>
+        <div class="button-row">
+          <button id="btn-load" class="action-button">Load into Sequencer</button>
+          <button id="btn-backup" class="action-button secondary">Backup Sequencer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Status ================= -->
+    <p class="status-text" data-class-error="!status_ok" data-if="status != ''">{{ status }}</p>
+
   </div>
 </body>
 </rml>
