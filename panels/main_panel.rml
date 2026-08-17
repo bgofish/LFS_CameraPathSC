@@ -6,7 +6,7 @@
   <div class="panel-shell">
     <div class="panel-header">
       <span class="panel-kicker">Camera Tools</span>
-      <span class="panel-title">Camera Path SC</span>
+      <span class="panel-title">Camera Path Spirals & Circles</span>
       <span class="panel-note">Native JSON camera path generator for LichtFeld Studio.</span>
     </div>
 
