@@ -254,10 +254,10 @@ def _campath_draw_handler(ctx):
         return
 
     if panel._centre_marker_pos is not None:
-        ctx.draw_point_3d(panel._centre_marker_pos, (0.0, 1.0, 0.5, 1.0), 16.0)
+        ctx.draw_point_3d(panel._centre_marker_pos, (0.0, 1.0, 0.5, 1.0), 14.0)
         screen = ctx.world_to_screen(panel._centre_marker_pos)
         if screen:
-            ctx.draw_circle_2d(screen, 12.0, (0.0, 1.0, 0.5, 1.0), 2.0)
+            ctx.draw_circle_2d(screen, 8.0, (0.0, 1.0, 0.5, 1.0), 2.0)
             ctx.draw_text_2d((screen[0] + 14, screen[1] - 8), "Orbit Centre", (0.0, 1.0, 0.5, 1.0))
 
     if panel._target_marker_pos is not None:
@@ -281,37 +281,19 @@ def _campath_draw_handler(ctx):
             ctx.draw_circle_2d(screen, 12.0, (0.4, 0.7, 1.0, 1.0), 2.0)
             ctx.draw_text_2d((screen[0] + 14, screen[1] - 8), f"Radius: {panel._radius:.2f}", (0.4, 0.7, 1.0, 1.0))
 
-    if panel._start_radius_marker_pos is not None:
-        ctx.draw_point_3d(panel._start_radius_marker_pos, (0.6, 1.0, 0.4, 1.0), 16.0)
-        if panel._centre_marker_pos is not None:
-            try:
-                ctx.draw_line_3d(panel._centre_marker_pos, panel._start_radius_marker_pos, (0.6, 1.0, 0.4, 0.8), 2.0)
-            except Exception:
-                pass
-        screen = ctx.world_to_screen(panel._start_radius_marker_pos)
-        if screen:
-            ctx.draw_circle_2d(screen, 12.0, (0.6, 1.0, 0.4, 1.0), 2.0)
-            ctx.draw_text_2d((screen[0] + 14, screen[1] - 8), f"Start Radius: {panel._start_radius:.2f}", (0.6, 1.0, 0.4, 1.0))
-
-    if panel._end_radius_marker_pos is not None:
-        ctx.draw_point_3d(panel._end_radius_marker_pos, (1.0, 0.8, 0.3, 1.0), 16.0)
-        if panel._centre_marker_pos is not None:
-            try:
-                ctx.draw_line_3d(panel._centre_marker_pos, panel._end_radius_marker_pos, (1.0, 0.8, 0.3, 0.8), 2.0)
-            except Exception:
-                pass
-        screen = ctx.world_to_screen(panel._end_radius_marker_pos)
-        if screen:
-            ctx.draw_circle_2d(screen, 12.0, (1.0, 0.8, 0.3, 1.0), 2.0)
-            ctx.draw_text_2d((screen[0] + 14, screen[1] - 8), f"End Radius: {panel._end_radius:.2f}", (1.0, 0.8, 0.3, 1.0))
-
     if panel._picking_target > 0:
-        label = {1: "ORBIT CENTRE", 2: "LOOK TARGET", 3: "RADIUS",
-                  4: "START RADIUS", 5: "END RADIUS"}.get(panel._picking_target, "")
+        label = {1: "ORBIT CENTRE", 2: "LOOK TARGET", 3: "RADIUS"}.get(panel._picking_target, "")
         ctx.draw_text_2d(
             (20, 50),
             f"PICK {label}: Click on model  (ESC / Right-click to cancel)",
             (0.0, 1.0, 0.5, 0.95),
+        )
+    elif panel._editing_target > 0:
+        label = {1: "ORBIT CENTRE", 2: "LOOK TARGET", 3: "RADIUS"}.get(panel._editing_target, "")
+        ctx.draw_text_2d(
+            (20, 50),
+            f"EDIT {label}: Drag the gizmo  (click Stop Editing when done)",
+            (0.4, 0.7, 1.0, 0.95),
         )
 
 def _ensure_draw_handler():
@@ -323,6 +305,59 @@ def _ensure_draw_handler():
             pass
         lf.add_draw_handler("campath_pick_overlay", _campath_draw_handler, "POST_VIEW")
         _draw_handler_registered = True
+
+
+# ── Edit-gizmo tool registration ────────────────────────────────────────────
+# LFS gizmos are driven by the currently ACTIVE TOOL (a ToolDef with
+# gizmo="translate"), not by node selection alone -- selecting a node with
+# no translate-tool active shows no gizmo at all. So Edit needs its own
+# registered tool to switch into while dragging, and switches back to
+# whatever was active before on Stop Editing.
+
+_EDIT_TOOL_ID = "CamPath_Json.tools.point_edit"
+_edit_tool_registered = False
+
+def _ensure_edit_tool():
+    global _edit_tool_registered
+    if _edit_tool_registered:
+        return
+    try:
+        from lfs_plugins.tool_defs.definition import ToolDef
+        from lfs_plugins.tools import ToolRegistry
+        tool = ToolDef(
+            id=_EDIT_TOOL_ID,
+            label="Edit Camera Path Point",
+            icon="move",
+            group="transform",
+            order=500,
+            description="Drag the gizmo to move the Orbit Centre / Look Target / Radius point.",
+            gizmo="translate",
+        )
+        ToolRegistry.register_tool(tool)
+        _edit_tool_registered = True
+    except Exception as e:
+        lf.log.warning(f"CamPath edit-tool registration error: {e}")
+
+def _unregister_edit_tool():
+    global _edit_tool_registered
+    if not _edit_tool_registered:
+        return
+    try:
+        from lfs_plugins.tools import ToolRegistry
+        ToolRegistry.unregister_tool(_EDIT_TOOL_ID)
+    except Exception:
+        pass
+    _edit_tool_registered = False
+
+
+def _flip_yz(pos):
+    """Convert between pick/world-space (x, y, z) -- used by cx/cy/cz, the
+    picked-point markers, and world_to_screen() -- and scene-node transform
+    space, which uses a Y/Z convention negated from it. Self-inverse: apply
+    the same conversion both when seeding the gizmo node and when reading
+    its dragged transform back."""
+    x, y, z = pos
+    return (x, -y, -z)
 
 
 # ── Panel ─────────────────────────────────────────────────────────────────────
@@ -350,8 +385,14 @@ class MainPanel(lf.ui.Panel):
         self._centre_marker_pos = None
         self._target_marker_pos = None
         self._radius_marker_pos = None
-        self._start_radius_marker_pos = None
-        self._end_radius_marker_pos = None
+
+        # Edit gizmo (Orbit Centre / Look Target / Radius) — same target_num
+        # convention as picking. Backed by a throwaway proxy locator node
+        # since LFS gizmos bind to real scene-node transforms, not bare
+        # floats; created on Edit, deleted on Stop Editing.
+        self._editing_target   = 0
+        self._editing_node_name = None
+        self._prev_tool_id      = None
 
         d = _load_defaults()
         f = d["fields"]
@@ -477,6 +518,7 @@ class MainPanel(lf.ui.Panel):
 
     def on_bind_model(self, ctx):
         _ensure_draw_handler()
+        _ensure_edit_tool()
         model = ctx.create_data_model(MODEL_NAME)
         if model is None:
             return
@@ -494,28 +536,34 @@ class MainPanel(lf.ui.Panel):
         model.bind_func("fov_text", self._fov_text)
         model.bind_func("keyframe_warning_text", self._keyframe_warning_text)
 
-        # ── Pick Point: Orbit Centre / Look Target / Radius / Start-End Radius ──
+        # ── Pick Point: Orbit Centre / Look Target / Radius ─────────────────
         model.bind_func("picking_centre",     lambda: self._picking_target == 1)
         model.bind_func("not_picking_centre", lambda: self._picking_target != 1)
         model.bind_func("picking_target",     lambda: self._picking_target == 2)
         model.bind_func("not_picking_target", lambda: self._picking_target != 2)
         model.bind_func("picking_radius",     lambda: self._picking_target == 3)
         model.bind_func("not_picking_radius", lambda: self._picking_target != 3)
-        model.bind_func("picking_start_radius",     lambda: self._picking_target == 4)
-        model.bind_func("not_picking_start_radius", lambda: self._picking_target != 4)
-        model.bind_func("picking_end_radius",        lambda: self._picking_target == 5)
-        model.bind_func("not_picking_end_radius",    lambda: self._picking_target != 5)
         model.bind_event("pick_centre",       self._on_pick_centre)
         model.bind_event("pick_target",       self._on_pick_target)
         model.bind_event("pick_radius",       self._on_pick_radius)
-        model.bind_event("pick_start_radius", self._on_pick_start_radius)
-        model.bind_event("pick_end_radius",   self._on_pick_end_radius)
         model.bind_event("stop_pick_target",  self._on_stop_pick_target)
         model.bind_event("update_centre",     self._on_update_centre_marker)
         model.bind_event("update_target",     self._on_update_target_marker)
         model.bind_event("update_radius",     self._on_update_radius_marker)
-        model.bind_event("update_start_radius", self._on_update_start_radius_marker)
-        model.bind_event("update_end_radius",   self._on_update_end_radius_marker)
+
+        # ── Edit Gizmo: Orbit Centre / Look Target / Radius ─────────────────
+        model.bind_func("editing_centre",     lambda: self._editing_target == 1)
+        model.bind_func("editing_target",     lambda: self._editing_target == 2)
+        model.bind_func("editing_radius",     lambda: self._editing_target == 3)
+        # "idle" == neither picking nor editing this section -- gates the
+        # Pick/Update/Edit button row so it hides while either is active.
+        model.bind_func("centre_idle",  lambda: self._picking_target != 1 and self._editing_target != 1)
+        model.bind_func("target_idle",  lambda: self._picking_target != 2 and self._editing_target != 2)
+        model.bind_func("radius_idle",  lambda: self._picking_target != 3 and self._editing_target != 3)
+        model.bind_event("edit_centre",       self._on_edit_centre)
+        model.bind_event("edit_target",       self._on_edit_target)
+        model.bind_event("edit_radius",       self._on_edit_radius)
+        model.bind_event("stop_edit_target",  self._on_stop_edit_target)
 
         self._handle = model.get_handle()
 
@@ -561,8 +609,7 @@ class MainPanel(lf.ui.Panel):
     # back out of a pick before clicking.
     # target_num: 1 = orbit centre, 2 = look target, 3 = radius.
 
-    _PICK_LABELS = {1: "Orbit Centre", 2: "Look Target", 3: "Radius",
-                     4: "Start Radius", 5: "End Radius"}
+    _PICK_LABELS = {1: "Orbit Centre", 2: "Look Target", 3: "Radius"}
 
     def _start_picking_target(self, target_num: int):
         self._picking_target = target_num
@@ -586,15 +633,6 @@ class MainPanel(lf.ui.Panel):
             pass
         self._set_status("Picking cancelled")
 
-    # target_num 3/4/5 all measure horizontal (XZ) distance from the orbit
-    # centre to the picked point -- same quantity "Radius" uses for the
-    # circular path, just aimed at a different field. Keyed by target_num.
-    _RADIUS_FAMILY = {
-        3: dict(marker="_radius_marker_pos",       value="_radius",       text="_radius_text",       spec="radius",       label="Radius"),
-        4: dict(marker="_start_radius_marker_pos", value="_start_radius", text="_start_radius_text", spec="start_radius", label="Start Radius"),
-        5: dict(marker="_end_radius_marker_pos",   value="_end_radius",   text="_end_radius_text",   spec="end_radius",   label="End Radius"),
-    }
-
     def _on_pick_target_result(self, world_pos, target_num):
         """Called (indirectly, via on_update) once a click lands on the model."""
         x, y, z = float(world_pos[0]), float(world_pos[1]), float(world_pos[2])
@@ -615,23 +653,23 @@ class MainPanel(lf.ui.Panel):
             # it with the orbit centre.
             self._auto_target = False
             self._set_status(f"Look Target picked: ({x:.2f}, {y:.2f}, {z:.2f})")
-        elif target_num in self._RADIUS_FAMILY:
-            # Horizontal (XZ) distance from the orbit centre to the picked
-            # point, matching how these radii are actually used for the path
-            # (px = cx + r*sin, pz = cz + r*cos -- Y/height is independent).
-            info = self._RADIUS_FAMILY[target_num]
+        else:
+            # Radius: horizontal (XZ) distance from the orbit centre to the
+            # picked point, matching how "radius" is actually used for the
+            # circular path (px = cx + r*sin, pz = cz + r*cos -- Y/height is
+            # independent and not part of this measurement).
+            self._radius_marker_pos = (x, y, z)
             dx = x - self._cx
             dz = z - self._cz
             r = math.hypot(dx, dz)
-            spec = self._numeric_specs.get(info["spec"])
+            spec = self._numeric_specs.get("radius")
             if spec:
                 r = max(spec["min"], min(spec["max"], r))
                 if spec["is_int"]:
                     r = float(int(round(r)))
-            setattr(self, info["marker"], (x, y, z))
-            setattr(self, info["value"], r)
-            setattr(self, info["text"], self._fmt_num(r, bool(spec and spec["is_int"])))
-            self._set_status(f"{info['label']} picked: {r:.2f} (from Orbit Centre)")
+            self._radius = r
+            self._radius_text = self._fmt_num(r, bool(spec and spec["is_int"]))
+            self._set_status(f"Radius picked: {r:.2f} (from Orbit Centre)")
         self._picking_target = 0
         if self._handle is not None:
             self._handle.dirty_all()
@@ -644,12 +682,6 @@ class MainPanel(lf.ui.Panel):
 
     def _on_pick_radius(self, h, e, a):
         self._start_picking_target(3)
-
-    def _on_pick_start_radius(self, h, e, a):
-        self._start_picking_target(4)
-
-    def _on_pick_end_radius(self, h, e, a):
-        self._start_picking_target(5)
 
     def _on_stop_pick_target(self, h, e, a):
         self._cancel_picking_target()
@@ -672,23 +704,15 @@ class MainPanel(lf.ui.Panel):
         if self._handle is not None:
             self._handle.dirty_all()
 
-    def _update_radius_family_marker(self, target_num: int):
-        """Rescale a radius-family marker (Radius / Start Radius / End Radius)
-        to its field's current value.
-
-        There's no model geometry to re-pick against a bare number, so this
-        extrapolates/interpolates along the same horizontal direction as the
-        last picked/updated point for that field (or a default +Z direction
-        if none exists yet), moving it to the new distance from the Orbit
-        Centre.
-        """
-        info = self._RADIUS_FAMILY[target_num]
+    def _radius_extrapolated_point(self, r: float):
+        """Point at horizontal distance r from the Orbit Centre, along the
+        same direction as the last picked/updated/edited radius point (or a
+        default +Z direction if none exists yet). Shared by Update and Edit."""
         cx, cy, cz = self._cx, self._cy, self._cz
-        marker = getattr(self, info["marker"])
-        if marker is not None:
-            dx = marker[0] - cx
-            dz = marker[2] - cz
-            y  = marker[1]
+        if self._radius_marker_pos is not None:
+            dx = self._radius_marker_pos[0] - cx
+            dz = self._radius_marker_pos[2] - cz
+            y  = self._radius_marker_pos[1]
         else:
             dx, dz, y = 0.0, 1.0, cy
 
@@ -696,21 +720,169 @@ class MainPanel(lf.ui.Panel):
         if horiz < 1e-6:
             dx, dz, horiz = 0.0, 1.0, 1.0
         ux, uz = dx / horiz, dz / horiz
+        return (cx + ux * r, y, cz + uz * r)
 
-        r = getattr(self, info["value"])
-        setattr(self, info["marker"], (cx + ux * r, y, cz + uz * r))
-        self._set_status(f"{info['label']} marker updated: {r:.2f} (from Orbit Centre)")
+    def _on_update_radius_marker(self, h, e, a):
+        """Rescale the radius marker to the current Radius value.
+
+        There's no model geometry to re-pick against a bare number, so this
+        extrapolates/interpolates along the same horizontal direction as the
+        last picked/updated radius point (or a default +Z direction if none
+        exists yet), moving it to the new distance from the Orbit Centre.
+        """
+        r = self._radius
+        self._radius_marker_pos = self._radius_extrapolated_point(r)
+        self._set_status(f"Radius marker updated: {r:.2f} (from Orbit Centre)")
         if self._handle is not None:
             self._handle.dirty_all()
 
-    def _on_update_radius_marker(self, h, e, a):
-        self._update_radius_family_marker(3)
+    # ------------------------------------------------------------------
+    # Edit Gizmo: Orbit Centre / Look Target / Radius
+    # ------------------------------------------------------------------
+    # LFS gizmos bind to a real scene-node's transform, not a bare float
+    # triple, so "Edit" creates a small throwaway proxy/locator node, seeds
+    # its transform, and selects it so the built-in Move gizmo attaches.
+    # While editing, on_update() polls the node's transform each tick and
+    # mirrors it back into cx/cy/cz (etc). "Stop Editing" deletes the node
+    # -- nothing lingers in the Scene tree afterward.
 
-    def _on_update_start_radius_marker(self, h, e, a):
-        self._update_radius_family_marker(4)
+    _EDIT_NODE_NAMES = {
+        1: "[CamPath] Orbit Centre (editing)",
+        2: "[CamPath] Look Target (editing)",
+        3: "[CamPath] Radius Point (editing)",
+    }
 
-    def _on_update_end_radius_marker(self, h, e, a):
-        self._update_radius_family_marker(5)
+    def _start_editing_target(self, target_num: int):
+        if self._editing_target == target_num:
+            return
+        if self._editing_target:
+            self._stop_editing_target()
+
+        if not lf.has_scene():
+            self._set_status("No scene loaded -- can't place an edit gizmo.", ok=False)
+            return
+
+        name = self._EDIT_NODE_NAMES[target_num]
+        if target_num == 1:
+            pos = (self._cx, self._cy, self._cz)
+        elif target_num == 2:
+            pos = (self._tx, self._ty, self._tz)
+        else:
+            pos = self._radius_extrapolated_point(self._radius)
+
+        try:
+            scene = lf.get_scene()
+            try:
+                # Clean up a stale node from a previous session that didn't
+                # get removed (e.g. the app closed mid-edit).
+                scene.remove_node(name, keep_children=False)
+            except Exception:
+                pass
+            scene.add_group(name)
+            node_pos = _flip_yz(pos)
+            matrix = lf.compose_transform(translation=list(node_pos), euler_deg=[0.0, 0.0, 0.0], scale=[1.0, 1.0, 1.0])
+            lf.set_node_transform(name, matrix)
+            lf.select_node(name)
+
+            # Switch to the translate-gizmo tool -- selection alone doesn't
+            # show a gizmo, the active tool has to be one with gizmo="translate".
+            _ensure_edit_tool()
+            from lfs_plugins.tools import ToolRegistry
+            self._prev_tool_id = lf.ui.get_active_tool()
+            ToolRegistry.set_active(_EDIT_TOOL_ID)
+            try:
+                lf.ui.request_redraw()
+            except Exception:
+                pass
+        except Exception as e:
+            lf.log.warning(f"CamPath edit-gizmo start error: {e}")
+            self._set_status(f"Couldn't start editing: {e}", ok=False)
+            return
+
+        self._editing_target = target_num
+        self._editing_node_name = name
+        self._set_status(f"Drag the gizmo to move {self._PICK_LABELS.get(target_num, '')}...")
+        if self._handle is not None:
+            self._handle.dirty_all()
+
+    def _stop_editing_target(self):
+        if not self._editing_target:
+            return
+        name = self._editing_node_name
+        try:
+            scene = lf.get_scene()
+            if scene is not None and name:
+                scene.remove_node(name, keep_children=False)
+        except Exception as e:
+            lf.log.warning(f"CamPath edit-gizmo cleanup error: {e}")
+        try:
+            lf.deselect_all()
+        except Exception:
+            pass
+        if self._prev_tool_id:
+            try:
+                from lfs_plugins.tools import ToolRegistry
+                ToolRegistry.set_active(self._prev_tool_id)
+            except Exception:
+                pass
+        self._prev_tool_id = None
+        self._editing_target = 0
+        self._editing_node_name = None
+
+    def _poll_editing_target(self):
+        """Called every on_update() tick while an edit gizmo is active."""
+        if not self._editing_target or not self._editing_node_name:
+            return
+        try:
+            matrix = lf.get_node_transform(self._editing_node_name)
+            node_pos = lf.decompose_transform(matrix)["translation"]
+            x, y, z = _flip_yz((float(node_pos[0]), float(node_pos[1]), float(node_pos[2])))
+        except Exception:
+            return
+
+        if self._editing_target == 1:
+            self._cx, self._cy, self._cz = x, y, z
+            self._cx_text = self._fmt_num(x, False)
+            self._cy_text = self._fmt_num(y, False)
+            self._cz_text = self._fmt_num(z, False)
+            self._centre_marker_pos = (x, y, z)
+        elif self._editing_target == 2:
+            self._tx, self._ty, self._tz = x, y, z
+            self._tx_text = self._fmt_num(x, False)
+            self._ty_text = self._fmt_num(y, False)
+            self._tz_text = self._fmt_num(z, False)
+            self._target_marker_pos = (x, y, z)
+            self._auto_target = False
+        else:
+            self._radius_marker_pos = (x, y, z)
+            dx = x - self._cx
+            dz = z - self._cz
+            r = math.hypot(dx, dz)
+            spec = self._numeric_specs.get("radius")
+            if spec:
+                r = max(spec["min"], min(spec["max"], r))
+                if spec["is_int"]:
+                    r = float(int(round(r)))
+            self._radius = r
+            self._radius_text = self._fmt_num(r, bool(spec and spec["is_int"]))
+
+        if self._handle is not None:
+            self._handle.dirty_all()
+
+    def _on_edit_centre(self, h, e, a):
+        self._start_editing_target(1)
+
+    def _on_edit_target(self, h, e, a):
+        self._start_editing_target(2)
+
+    def _on_edit_radius(self, h, e, a):
+        self._start_editing_target(3)
+
+    def _on_stop_edit_target(self, h, e, a):
+        self._stop_editing_target()
+        self._set_status("Editing stopped")
+        if self._handle is not None:
+            self._handle.dirty_all()
 
     # ------------------------------------------------------------------
     # DOM wiring
@@ -758,6 +930,9 @@ class MainPanel(lf.ui.Panel):
             self._picking_target = 0
             self._set_status("Picking cancelled")
 
+        # Mirror the edit-gizmo proxy node's transform back into fields.
+        self._poll_editing_target()
+
         # Recorded values (frames/fps/focal length/etc.) can change fields
         # that feed the derived text -- keep those live.
         if self._handle is not None:
@@ -771,10 +946,17 @@ class MainPanel(lf.ui.Panel):
             self._handle.dirty("not_picking_target")
             self._handle.dirty("picking_radius")
             self._handle.dirty("not_picking_radius")
-            self._handle.dirty("picking_start_radius")
-            self._handle.dirty("not_picking_start_radius")
-            self._handle.dirty("picking_end_radius")
-            self._handle.dirty("not_picking_end_radius")
+            self._handle.dirty("editing_centre")
+            self._handle.dirty("editing_target")
+            self._handle.dirty("editing_radius")
+            self._handle.dirty("centre_idle")
+            self._handle.dirty("target_idle")
+            self._handle.dirty("radius_idle")
+
+    def on_unmount(self, doc):
+        del doc
+        # Don't leave a stray proxy node behind if the panel closes mid-edit.
+        self._stop_editing_target()
 
     # ------------------------------------------------------------------
     # Actions

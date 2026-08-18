@@ -284,6 +284,16 @@ input.range sliderbar:hover {
     background-color: #1a2230;
 }
 
+.action-button.edit {
+    background-color: #201229;
+    color: #c792ea;
+    border: 1dp #5b3a73;
+}
+
+.action-button.edit:hover {
+    background-color: #2c1a3a;
+}
+
 /* --- Status --- */
 
 .status-text {

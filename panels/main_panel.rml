@@ -6,7 +6,7 @@
   <div class="panel-shell">
     <div class="panel-header">
       <span class="panel-kicker">Camera Tools</span>
-      <span class="panel-title">Camera Path Spirals & Circles</span>
+      <span class="panel-title">Camera Path SC</span>
       <span class="panel-note">Native JSON camera path generator for LichtFeld Studio.</span>
     </div>
 
@@ -54,12 +54,16 @@
               <input type="text" class="field-input slider-text" data-value="radius_text"/>
             </div>
           </div>
-          <div data-if="not_picking_radius" class="button-row">
+          <div data-if="radius_idle" class="button-row">
             <button class="action-button pick" data-event-click="pick_radius" title="Click a point on the model; radius is computed as the horizontal distance from the Orbit Centre.">Pick Point (from Orbit Centre)</button>
             <button class="action-button update" data-event-click="update_radius" title="Move the radius marker to match the current Radius value (extrapolated along the last picked direction from Orbit Centre).">Update</button>
+            <button class="action-button edit" data-event-click="edit_radius" title="Place a drag gizmo at the radius point; dragging it updates Radius live.">Edit</button>
           </div>
           <div data-if="picking_radius" class="button-row">
             <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
+          </div>
+          <div data-if="editing_radius" class="button-row">
+            <button class="action-button danger" data-event-click="stop_edit_target" title="Remove the drag gizmo and keep the current values.">Stop Editing</button>
           </div>
         </div>
 
@@ -78,26 +82,12 @@
               <input type="text" class="field-input slider-text" data-value="start_radius_text"/>
             </div>
           </div>
-          <div data-if="not_picking_start_radius" class="button-row">
-            <button class="action-button pick" data-event-click="pick_start_radius" title="Click a point on the model; start radius is computed as the horizontal distance from the Orbit Centre.">Pick Point (from Orbit Centre)</button>
-            <button class="action-button update" data-event-click="update_start_radius" title="Move the start-radius marker to match the current Start Radius value.">Update</button>
-          </div>
-          <div data-if="picking_start_radius" class="button-row">
-            <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
-          </div>
           <div class="field-row">
             <span class="field-label">End Radius (m)</span>
             <div class="slider-combo">
               <input type="range" class="field-slider" min="0" max="200" step="0.1" data-value="end_radius"/>
               <input type="text" class="field-input slider-text" data-value="end_radius_text"/>
             </div>
-          </div>
-          <div data-if="not_picking_end_radius" class="button-row">
-            <button class="action-button pick" data-event-click="pick_end_radius" title="Click a point on the model; end radius is computed as the horizontal distance from the Orbit Centre.">Pick Point (from Orbit Centre)</button>
-            <button class="action-button update" data-event-click="update_end_radius" title="Move the end-radius marker to match the current End Radius value.">Update</button>
-          </div>
-          <div data-if="picking_end_radius" class="button-row">
-            <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
           </div>
           <div class="field-row">
             <span class="field-label">Start Height (m)</span>
@@ -162,12 +152,16 @@
             <input type="text" class="field-input slider-text" data-value="cz_text"/>
           </div>
         </div>
-        <div data-if="not_picking_centre" class="button-row">
+        <div data-if="centre_idle" class="button-row">
           <button class="action-button pick" data-event-click="pick_centre" title="Click on the model to set the orbit centre.">Pick Point</button>
           <button class="action-button update" data-event-click="update_centre" title="Move the marker in the viewport to match the current X/Y/Z values.">Update</button>
+          <button class="action-button edit" data-event-click="edit_centre" title="Place a drag gizmo at the orbit centre; dragging it updates X/Y/Z live.">Edit</button>
         </div>
         <div data-if="picking_centre" class="button-row">
           <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
+        </div>
+        <div data-if="editing_centre" class="button-row">
+          <button class="action-button danger" data-event-click="stop_edit_target" title="Remove the drag gizmo and keep the current values.">Stop Editing</button>
         </div>
       </div>
     </div>
@@ -207,12 +201,16 @@
               <input type="text" class="field-input slider-text" data-value="tz_text"/>
             </div>
           </div>
-          <div data-if="not_picking_target" class="button-row">
+          <div data-if="target_idle" class="button-row">
             <button class="action-button pick" data-event-click="pick_target" title="Click on the model to set the look target. Turns off Auto-target.">Pick Point</button>
             <button class="action-button update" data-event-click="update_target" title="Move the marker in the viewport to match the current X/Y/Z values.">Update</button>
+            <button class="action-button edit" data-event-click="edit_target" title="Place a drag gizmo at the look target; dragging it updates X/Y/Z live. Turns off Auto-target.">Edit</button>
           </div>
           <div data-if="picking_target" class="button-row">
             <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
+          </div>
+          <div data-if="editing_target" class="button-row">
+            <button class="action-button danger" data-event-click="stop_edit_target" title="Remove the drag gizmo and keep the current values.">Stop Editing</button>
           </div>
         </div>
       </div>
