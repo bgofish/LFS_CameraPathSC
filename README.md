@@ -7,6 +7,8 @@ EDIT 0.2.1
   
 EDIT 0.2.2
 * Added Pickpoint Gizmo EDIT buttons ("Stop Editing" to finish)
+* Known Issues: After 'Stop Editing' the selection toolbar appears - this is showing up because the 'scene calls are nudging the selection state.' 
+
 <img width="1168" height="430" alt="image" src="https://github.com/user-attachments/assets/66e18c42-8c17-4bd1-82ab-29615cad0563" />
 
 <img width="1648" height="919" alt="image" src="https://github.com/user-attachments/assets/7db7d939-eb0d-4780-bf7a-4f22c9b37a84" />
