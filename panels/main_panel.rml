@@ -82,12 +82,35 @@
               <input type="text" class="field-input slider-text" data-value="start_radius_text"/>
             </div>
           </div>
+          <div data-if="start_radius_idle" class="button-row">
+            <button class="action-button pick" data-event-click="pick_start_radius" title="Click a point on the model; start radius is computed as the horizontal distance from the Orbit Centre.">Pick Point (from Orbit Centre)</button>
+            <button class="action-button update" data-event-click="update_start_radius" title="Move the start-radius marker to match the current Start Radius value.">Update</button>
+            <button class="action-button edit" data-event-click="edit_start_radius" title="Place a drag gizmo at the start-radius point; dragging it updates Start Radius live.">Edit</button>
+          </div>
+          <div data-if="picking_start_radius" class="button-row">
+            <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
+          </div>
+          <div data-if="editing_start_radius" class="button-row">
+            <button class="action-button danger" data-event-click="stop_edit_target" title="Remove the drag gizmo and keep the current values.">Stop Editing</button>
+          </div>
+
           <div class="field-row">
             <span class="field-label">End Radius (m)</span>
             <div class="slider-combo">
               <input type="range" class="field-slider" min="0" max="200" step="0.1" data-value="end_radius"/>
               <input type="text" class="field-input slider-text" data-value="end_radius_text"/>
             </div>
+          </div>
+          <div data-if="end_radius_idle" class="button-row">
+            <button class="action-button pick" data-event-click="pick_end_radius" title="Click a point on the model; end radius is computed as the horizontal distance from the Orbit Centre.">Pick Point (from Orbit Centre)</button>
+            <button class="action-button update" data-event-click="update_end_radius" title="Move the end-radius marker to match the current End Radius value.">Update</button>
+            <button class="action-button edit" data-event-click="edit_end_radius" title="Place a drag gizmo at the end-radius point; dragging it updates End Radius live.">Edit</button>
+          </div>
+          <div data-if="picking_end_radius" class="button-row">
+            <button class="action-button danger" data-event-click="stop_pick_target" title="Stop picking.">Stop Picking</button>
+          </div>
+          <div data-if="editing_end_radius" class="button-row">
+            <button class="action-button danger" data-event-click="stop_edit_target" title="Remove the drag gizmo and keep the current values.">Stop Editing</button>
           </div>
           <div class="field-row">
             <span class="field-label">Start Height (m)</span>
@@ -272,6 +295,12 @@
           </div>
         </div>
         <p class="warning-text" data-if="keyframe_warning_text != ''">{{ keyframe_warning_text }}</p>
+        <div class="field-row">
+          <div class="option-item" data-event-click="add_start_end_keys = !add_start_end_keys" title="Additional Start end keys to preserve curvature">
+            <span class="option-box checkbox" data-class-checked="add_start_end_keys"></span>
+            <span>Add Start/End Keys</span>
+          </div>
+        </div>
         <div class="field-row">
           <span class="field-label">Decimal Precision</span>
           <div class="slider-combo">
